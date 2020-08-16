@@ -506,9 +506,9 @@ function render() {
   const ordSub =
     game.ord <= 1e200 || fbvps >= 10
       ? getFBps()/getFBmult() >= 10
-        ? displayOrd(0, game.base, 0, 0, 0, 0, game.colors)
-        : displayOrd(game.ord, game.base, game.over, 0, 0, 0, game.colors)
-      : displayOrd(
+        ? await displayOrd(0, game.base, 0, 0, 0, 0, game.colors)
+        : await displayOrd(game.ord, game.base, game.over, 0, 0, 0, game.colors)
+      : await displayOrd(
           Math.round(game.ord / 1e270 + 1) * 1e270 - 1e270,
           3,
           0,
@@ -539,7 +539,7 @@ function render() {
     $.notify(`Ordinal Level ${ordLevel} Reached! ` + (ordLevel==51?"(You should start repeatedly markuping and max all)":"") + (ordLevel==100? "(Get ready for base 2!)":""), "achieve");
   }
   get("psiLevel").innerText = ordLevel
-  get("nextPsiLevel").innerHTML = displayOrd(getPsiReq(ordLevel+1)(game.base),game.base)
+  get("nextPsiLevel").innerHTML = await displayOrd(getPsiReq(ordLevel+1)(game.base),game.base)
   get("bestPsiLevel").textContent=game.bestPsi
   if (game.infUnlock === 1) {
     get("infinityTabButton").style.display = "inline-block";
@@ -666,7 +666,7 @@ function render() {
     "Factor Boost (" +
     commafy(game.factorBoosts) +
     "): Requires g<sub>" +
-    displayOrd(V(game.factorBoosts + 3, 1)) +
+    await displayOrd(V(game.factorBoosts + 3, 1)) +
     "</sub> (10) OP";
   get("gainBoosters").textContent =
     (getSingLevel() == 1
@@ -695,7 +695,7 @@ function render() {
       ? beautify(buptotalMute)
       : 0) +
     " times per second, but only if you're past " +
-    displayOrd(10 ** 270 * 4) +
+    await displayOrd(10 ** 270 * 4) +
     (game.leastBoost <= 1.5
       ? ". It also activates if your Tier 1 automation isn't autoclicking at least once a second"
       : "");
@@ -764,12 +764,12 @@ function render() {
   get("changeInt").textContent = "Millisecond Interval: " + game.msint + "ms";
   get("changeOrdLengthLess").innerHTML =
     "Maximum Ordinal Length below " +
-    displayOrd(10 ** 270 * 4) +
+    await displayOrd(10 ** 270 * 4) +
     ": " +
     game.maxOrdLength.less;
   get("changeOrdLengthMore").innerHTML =
     "Maximum Ordinal Length above " +
-    displayOrd(10 ** 270 * 4) +
+    await displayOrd(10 ** 270 * 4) +
     ": " +
     game.maxOrdLength.more;
   get("getManifolds").innerHTML =
@@ -850,7 +850,7 @@ function render() {
     "Colors: " + (game.colors === 1 ? "ON (high performance cost)" : (game.colors === 2 ? "Flashing" : "OFF"));
   get("changeMusic").innerHTML = "Music: " + musicName[game.music];
   get("incrementyText3").innerHTML =
-    "You start gaining incrementy when you reach " + displayOrd(4e270);
+    "You start gaining incrementy when you reach " + await displayOrd(4e270);
   get("decrementyText").textContent =
     "There is " +
     (inChal(8)
@@ -1012,7 +1012,7 @@ function render() {
     "Offline Progress: " + (game.offlineProg == 1 ? "ON" : "OFF");
   get("bup10").innerHTML =
     "The base is always five below " +
-    displayOrd(4e270) +
+    await displayOrd(4e270) +
     "<br><br>73 Boosters";
   get("aup4").innerHTML =
     "OP boosts Tier 1 and 2 by x" +
@@ -1105,7 +1105,7 @@ function render() {
     " ℵ<sub>ω</sub>";
   get("singEffect").innerHTML =
     "Raising the Factor Boosts 25+ requirement to " +
-    displayOrd(Math.ceil(BHO * getSingLevel())) +
+    await displayOrd(Math.ceil(BHO * getSingLevel())) +
     " and having them give out " +
     getFBmult()
  +
@@ -1582,7 +1582,7 @@ function maxall() {
   }
 }
 
-function displayOrd(
+async function displayOrd(
   ord,
   base = 3,
   over = 0,
@@ -1593,14 +1593,14 @@ function displayOrd(
 ) {
   if (ord == Infinity) {
     if (ordColor == "no") ordColor = "red";
-    return colour == 1
+    return new Promise((res, rej)=>{res( colour == 1
       ? "<span style='color:red'>" + "Ω" + "</span>"
-      : "Ω";
+      : "Ω")});
   } else if (ord < base && large == 0) {
     if (ordColor == "no") ordColor = "red";
-    return colour == 1
+    return new Promise((res, rej)=>{res( colour == 1
       ? "<span style='color:red'>" + (ord + over) + "</span>"
-      : ord + over;
+      : ord + over)});
   } else if ((ord < 10**260 || base > 3) && large == 0) {
     let tempvar = Math.floor(Math.log(ord + 0.1) / Math.log(base));
     if (ordColor == "no") ordColor = HSL(tempvar * 8);
@@ -1611,7 +1611,7 @@ function displayOrd(
       (tempvar == 1
         ? ""
         : (game.buchholz == 2 ? "^(" : "<sup>") +
-          displayOrd(Math.ceil(tempvar), base, 0) +
+          await displayOrd(Math.ceil(tempvar), base, 0) +
           (game.buchholz == 2 ? ")" : "</sup>")) +
       (tempvar3 == 1
         ? ""
@@ -1622,14 +1622,14 @@ function displayOrd(
           ? ""
           : "+..."
         : "+");
-    return (
+    return new Promise((res, rej)=>{res( (
       (colour == 1
         ? "<span style='color:" + HSL(tempvar * 8) + "'>" + tempvar4 + "</span>"
         : tempvar4) +
       (ord - tempvar2 * tempvar3 + over == 0 ||
       trim == game.maxOrdLength.less - 1
         ? ""
-        : displayOrd(
+        : await displayOrd(
             Math.ceil(ord - tempvar2 * tempvar3),
             base,
             over,
@@ -1638,33 +1638,33 @@ function displayOrd(
             multoff,
             colour
           ))
-    );
+    ))});
   } else if (ord < 4 * 10 ** 270) {
     let tempvar =
       multoff == 0
         ? [
-            displayOrd(3),
-            displayOrd(9),
-            displayOrd(27),
-            displayOrd(19683),
+            await displayOrd(3),
+            await displayOrd(9),
+            await displayOrd(27),
+            await displayOrd(19683),
             ordMarks[game.buchholz][0].replace("x", "")
           ][Math.max(0, Math.floor((ord + 10 ** 268) / 10 ** 270))]
         : [
             "1",
-            displayOrd(3),
-            displayOrd(27),
-            displayOrd(19683),
+            await displayOrd(3),
+            await displayOrd(27),
+            await displayOrd(19683),
             ordMarks[game.buchholz][0].replace("x", "")
           ][Math.max(0, Math.floor((ord + 10 ** 268) / 10 ** 270))];
-    return colour == 1
+    return new Promise((res, rej)=>{res( colour == 1
       ? color(tempvar, ["ω", "(", ")", "^", "!", "@", "$"], "red")
-      : tempvar;
+      : tempvar)});
   } else if (ord < BHO) {
     let tempvar = Math.floor(
       Math.log((ord + 10 ** 268) / (4 * 10 ** 270)) / Math.log(3)
     );
     if (ordColor == "no") ordColor = HSL(tempvar * 8);
-    let tempvar2 = displayOrd(
+    let tempvar2 = await displayOrd(
       ord - 3 ** tempvar * 4 * 10 ** 270 + 10 ** 265,
       base,
       over,
@@ -1700,10 +1700,10 @@ function displayOrd(
           : ""
         : tempvar2
     );
-    return output;
+    return new Promise((res, rej)=>{res( output)});
   } else if (getSingLevel() == 1&&ord==BHO) {
     if (ordColor == "no") ordColor = HSL(40 * 8);
-    return colour == 1 ? color("BHO", ["BHO"], HSL(80 * 4)) : "BHO";
+    return new Promise((res, rej)=>{res( colour == 1 ? color("BHO", ["BHO"], HSL(80 * 4)) : "BHO")});
   } else {
     let tempvar = Math.floor(ord / BHO - 1);
 
@@ -1723,7 +1723,7 @@ function displayOrd(
 
     if (ordColor == "no") ordColor = HSL((tempvar + 40) * 8);
 
-    let tempvar4 = displayOrd(
+    let tempvar4 = await displayOrd(
       Math.ceil(tempvar3 + 10 ** 265),
       base,
       over,
@@ -1758,7 +1758,7 @@ function displayOrd(
           : ""
         : tempvar4
     );
-    return output;
+    return new Promise((res, rej)=>{res( output)});
   }
 }
 
@@ -1789,7 +1789,7 @@ function beautify(number, f = 0) {
         return "1.000e257 (cap in base " + game.base + ")";
       }
     } else {
-      return "g<sub>" + displayOrd(number - 9.9e269, 3) + "</sub> (10)";
+      return "g<sub>" + await displayOrd(number - 9.9e269, 3) + "</sub> (10)";
     }
   } else {
     return beautifyEN(number, f);
